@@ -1,0 +1,87 @@
+﻿<Page
+    x:Class="UWP_DashBoard.Views.Page_DashBoard"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:UWP_DashBoard.Views"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    xmlns:sys="using:System"
+    xmlns:Weather="using:UWP_DashBoard.Weather"
+    xmlns:Charting="using:WinRTXamlToolkit.Controls.DataVisualization.Charting"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+    
+    
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="auto"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="2*"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <!--背景图片-->
+        <Image Source="/Images/img1.jpg" Stretch="UniformToFill" Grid.ColumnSpan="2" Grid.RowSpan="4" 
+               HorizontalAlignment="Center" VerticalAlignment="Center" 
+               Opacity="0.2"/>
+        <!--当前日期-->
+        <TextBlock  FontSize="52" x:Name="TB_date" Grid.Column="1"
+                     VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,0,16,0">
+            <Run Text="{x:Bind sys:String.Format('{0:dddd},',CurrentDateTime),Mode=OneWay}"/>
+            <Run Text="{x:Bind sys:String.Format('{0:m}',CurrentDateTime),Mode=OneWay}"/>
+        </TextBlock>
+        <!--当前时间-->
+        <TextBlock Text="{x:Bind sys:String.Format('{0:T}',CurrentDateTime),Mode=OneWay}" 
+                   FontSize="320" x:Name="TB_time" 
+                   Grid.ColumnSpan="2" Grid.Row="1" HorizontalAlignment="Center"/>
+        <!--当前天气-->
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Top">
+            <FontIcon FontFamily="Segoe UI Emoji" Glyph="{x:Bind CurrentWeather.Icon,Mode=OneWay}" 
+                      FontSize="72" Margin="0,-16,0,0"/>
+            <TextBlock  FontSize="52">
+                <Run Text="{x:Bind CurrentWeather.Temperature,Mode=OneWay}"/>
+                <Run Text="{x:Bind CurrentWeather.Description,Mode=OneWay}"/>
+            </TextBlock>
+        </StackPanel>
+        <!--天气预报列表-->
+        <ListView     ScrollViewer.HorizontalScrollBarVisibility="Hidden"
+                      ScrollViewer.HorizontalScrollMode="Enabled"
+                      ScrollViewer.VerticalScrollMode="Disabled"
+                      ScrollViewer.VerticalScrollBarVisibility="Hidden"
+                      SelectionMode="None" 
+                      Grid.Row="2" Grid.ColumnSpan="2" ItemsSource="{x:Bind WeatherForecast,Mode=OneWay}">
+            <ListView.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <StackPanel Orientation="Horizontal"/>
+                </ItemsPanelTemplate>
+            </ListView.ItemsPanel>
+
+            <ListView.ItemTemplate>
+                <DataTemplate x:DataType="Weather:WeatherUi">
+                    <StackPanel Orientation="Vertical" Width="120">
+                        <FontIcon FontFamily="Segoe UI Emoji" Glyph="{x:Bind Icon,Mode=OneWay}"
+                                  FontSize="64"/>
+                        <TextBlock FontSize="20" HorizontalAlignment="Center">
+                            <Run Text="{x:Bind Temperature,Mode=OneWay}" />
+                            <Run Text="{x:Bind Main,Mode=OneWay}"/>
+                        </TextBlock>
+                        <TextBlock FontSize="16" HorizontalAlignment="Center">
+                            <Run Text="{x:Bind sys:String.Format('{0:m}',Time),Mode=OneWay}"/>
+                            <Run Text="{x:Bind sys:String.Format('{0:t}',Time),Mode=OneWay}"/>
+                        </TextBlock>
+                    </StackPanel>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+        
+        
+        <!--<Button x:Name="Button_Test" Grid.Row="4" Grid.ColumnSpan="2" Content="TEST"
+                HorizontalAlignment="Center" VerticalAlignment="Center"
+                />-->
+
+    </Grid>
+</Page>
