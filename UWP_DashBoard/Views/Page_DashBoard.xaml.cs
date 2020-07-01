@@ -19,6 +19,7 @@ using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
+using UWP_DashBoard.Boc;
 
 // https://go.microsoft.com/fwlink/?LinkId=234238 上介绍了“空白页”项模板
 
@@ -65,7 +66,7 @@ namespace UWP_DashBoard.Views
         public ObservableCollection<WeatherUi> WeatherForecast
         {
             get { return _weatherForecast; }
-            set { _weatherForecast = value; OnPropertyChanged(); Debug.WriteLine(value.Count); Debug.WriteLine(value[0].Description); }
+            set { _weatherForecast = value; OnPropertyChanged(); }
         }
 
         public Page_DashBoard()
@@ -73,6 +74,8 @@ namespace UWP_DashBoard.Views
             this.InitializeComponent();
             showTime();
             updateWeather();
+            //updateExchangeRate();
+            test();
         }
 
         /// <summary>
@@ -91,7 +94,7 @@ namespace UWP_DashBoard.Views
             CurrentDateTime = DateTime.Now;
         }
 
-        private async void updateWeather()
+        private async Task updateWeather()
         {
             DispatcherTimer timer = new DispatcherTimer();
             timer.Interval = new TimeSpan(0, 1, 0);
@@ -106,13 +109,25 @@ namespace UWP_DashBoard.Views
             WeatherForecast = await new WeatherProxy().GetForecastWeatherUiList();
         }
 
+        //private async Task updateExchangeRate()
+        //{
+        //    List<ExchangeRateModel> rateList = await new BocDataRetrieval().GetRateFromWebPageAsync();
+        //    int count = rateList.Count();
+        //}
+
         public async Task show(string s)
         {
             var md = new MessageDialog(s);
             await md.ShowAsync();
         }
 
-
+        private async Task test()
+        {
+            BocService boc = new BocService();
+            await boc.updateDb();
+            List<ExchangeRateModel> exchangeRate=boc.getExchangeRate();
+            List<DailyHistoryModel> dailyHistory = boc.GetDailyHistory();
+        }
 
 
 
