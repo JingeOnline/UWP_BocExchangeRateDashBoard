@@ -7,6 +7,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
     xmlns:sys="using:System"
+    xmlns:lvc="using:LiveCharts.Uwp"
     xmlns:Weather="using:UWP_DashBoard.Weather"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
@@ -17,10 +18,10 @@
             <RowDefinition Height="auto"/>
             <RowDefinition Height="auto"/>
             <RowDefinition Height="auto"/>
-            <RowDefinition Height="auto"/>
+            <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="2*"/>
+            <ColumnDefinition Width="*"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
         <!--背景图片-->
@@ -81,6 +82,19 @@
         <!--<Button x:Name="Button_Test" Grid.Row="4" Grid.ColumnSpan="2" Content="TEST"
                 HorizontalAlignment="Center" VerticalAlignment="Center"
                 />-->
-
+        <!--<lvc:CartesianChart Grid.Row="3">
+            <lvc:CartesianChart.Series>
+                --><!--<lvc:LineSeries Values="{x:Bind AUDExchangeRateValues}"/>--><!--
+                <lvc:ColumnSeries Values="{x:Bind AUDExchangeRateValues}"/>
+            </lvc:CartesianChart.Series>
+        </lvc:CartesianChart>-->
+        <Grid Grid.Row="3" Margin="8,8,4,8">
+            <lvc:CartesianChart Series="{x:Bind AUDExchangeRateSeries,Mode=OneWay}" >
+            </lvc:CartesianChart>
+        </Grid>
+        <Grid Grid.Row="3" Grid.Column="1" Margin="4,8,8,8">
+            <lvc:CartesianChart Series="{x:Bind AUDDailyHistorySeries,Mode=OneWay}" Grid.Row="3" Grid.Column="1">
+            </lvc:CartesianChart>
+        </Grid>
     </Grid>
 </Page>

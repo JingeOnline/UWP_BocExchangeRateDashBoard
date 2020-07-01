@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -47,7 +48,7 @@ namespace UWP_DashBoard.Boc
                 new BocDatabase().InsertErTable(rateList);
                 createDailyHistoryObjectAndInsertDatabase();
             }
-
+            Debug.WriteLine("更新数据库完成");
         }
 
         /// <summary>

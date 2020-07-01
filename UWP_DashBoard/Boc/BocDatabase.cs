@@ -1,6 +1,7 @@
 ﻿using LiteDB;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -21,6 +22,7 @@ namespace UWP_DashBoard.Boc
         {
             erDbPath = Path.Combine(ApplicationData.Current.LocalFolder.Path, erDbPath);
             dhDbPath = Path.Combine(ApplicationData.Current.LocalFolder.Path, dhDbPath);
+            Debug.WriteLine(erDbPath);
         }
 
         /// <summary>

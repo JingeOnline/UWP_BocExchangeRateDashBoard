@@ -20,6 +20,8 @@ using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
 using UWP_DashBoard.Boc;
+using LiveCharts;
+using LiveCharts.Uwp;
 
 // https://go.microsoft.com/fwlink/?LinkId=234238 上介绍了“空白页”项模板
 
@@ -39,6 +41,8 @@ namespace UWP_DashBoard.Views
                 this.PropertyChanged(this, new PropertyChangedEventArgs(propName));
             }
         }
+
+        public string[] lala = new string[] { "a", "b" ,"c"};
 
         /// <summary>
         /// 当前时间，用于显示在UI上
@@ -69,13 +73,29 @@ namespace UWP_DashBoard.Views
             set { _weatherForecast = value; OnPropertyChanged(); }
         }
 
+        private SeriesCollection _AUDExchangeRateSeries;
+
+        public SeriesCollection AUDExchangeRateSeries
+        {
+            get { return _AUDExchangeRateSeries; }
+            set { _AUDExchangeRateSeries = value; OnPropertyChanged(); }
+        }
+
+        private SeriesCollection _AUDDailyHistorySeries;
+
+        public SeriesCollection AUDDailyHistorySeries
+        {
+            get { return _AUDDailyHistorySeries; }
+            set { _AUDDailyHistorySeries = value;OnPropertyChanged(); }
+        }
+
+
         public Page_DashBoard()
         {
             this.InitializeComponent();
             showTime();
             updateWeather();
-            //updateExchangeRate();
-            test();
+            updateBocExchangeRate();
         }
 
         /// <summary>
@@ -93,45 +113,100 @@ namespace UWP_DashBoard.Views
             //启动timer之后，需要过一个周期才执行，所以这里手动执行该方法一次。
             CurrentDateTime = DateTime.Now;
         }
-
+        /// <summary>
+        /// 获取并更新天气到UI
+        /// </summary>
+        /// <returns></returns>
         private async Task updateWeather()
         {
             DispatcherTimer timer = new DispatcherTimer();
-            timer.Interval = new TimeSpan(0, 1, 0);
+            timer.Interval = new TimeSpan(0, 3, 0);
             timer.Tick += async (object sender, object e)=>
             {
                 CurrentWeather = await new WeatherProxy().GetCurrentWeatherUi();
                 WeatherForecast = await new WeatherProxy().GetForecastWeatherUiList();
+                Debug.WriteLine("Weather获取数据完成");
             };
             timer.Start();
             //启动timer之后，需要过一个周期才执行，所以这里手动执行该方法一次。
             CurrentWeather = await new WeatherProxy().GetCurrentWeatherUi();
             WeatherForecast = await new WeatherProxy().GetForecastWeatherUiList();
+            Debug.WriteLine("Weather获取数据完成");
         }
 
-        //private async Task updateExchangeRate()
+
+        //public async Task show(string s)
         //{
-        //    List<ExchangeRateModel> rateList = await new BocDataRetrieval().GetRateFromWebPageAsync();
-        //    int count = rateList.Count();
+        //    var md = new MessageDialog(s);
+        //    await md.ShowAsync();
         //}
 
-        public async Task show(string s)
+        /// <summary>
+        /// 更新数据库并获取最新的汇率
+        /// </summary>
+        /// <returns></returns>
+        private async Task updateBocExchangeRate()
         {
-            var md = new MessageDialog(s);
-            await md.ShowAsync();
+            DispatcherTimer timer = new DispatcherTimer();
+            timer.Interval = new TimeSpan(0, 3, 0);
+            timer.Tick += async (object sender, object e) =>
+            {
+                await new BocService().updateDb();
+                setExchangeRateSeries();
+                setDailyHistorySeries();
+            };
+            timer.Start();
+            //启动timer之后，需要过一个周期才执行，所以这里手动执行该方法一次。
+            //BocService boc = new BocService();
+            await new BocService().updateDb();
+            setExchangeRateSeries();
+            setDailyHistorySeries();
         }
 
-        private async Task test()
+        private void setExchangeRateSeries()
         {
             BocService boc = new BocService();
-            await boc.updateDb();
-            List<ExchangeRateModel> exchangeRate=boc.getExchangeRate();
+
+            List<ExchangeRateModel> exchangeRateList = boc.getExchangeRate();
+            ChartValues<double> exchangeRateValues = new ChartValues<double>();
+            foreach(ExchangeRateModel er in exchangeRateList)
+            {
+                exchangeRateValues.Add(er.xhmcj);
+            }
+
+
+            AUDExchangeRateSeries = new SeriesCollection
+            {
+                new LineSeries
+                {
+                    Values=exchangeRateValues,
+                },
+            };
+
+
+        }
+
+        private void setDailyHistorySeries()
+        {
+            BocService boc = new BocService();
             List<DailyHistoryModel> dailyHistory = boc.GetDailyHistory();
+
+            ChartValues<double> audValues = new ChartValues<double>();
+            foreach (DailyHistoryModel dh in dailyHistory)
+            {
+                audValues.Add(dh.avgXhmcj);
+            }
+            AUDDailyHistorySeries = new SeriesCollection
+            {
+                new LineSeries
+                {
+                    Values=audValues,
+                },
+            };
         }
 
 
 
 
-        
     }
 }
