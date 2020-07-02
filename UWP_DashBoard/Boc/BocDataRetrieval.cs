@@ -13,7 +13,7 @@ namespace UWP_DashBoard.Boc
     public class BocDataRetrieval
     {
 
-        private int startPageNum=25;
+        private int startPageNum = 25;
 
         /// <summary>
         /// 从中国银行的汇率历史页面获取汇率数据（所有）
@@ -22,25 +22,33 @@ namespace UWP_DashBoard.Boc
         public async Task<List<ExchangeRateModel>> GetRateFromWebPageAsync()
         {
             List<ExchangeRateModel> listAll = new List<ExchangeRateModel>();
-            //每次开启5个Task同时获取数据
-            for (int i = startPageNum; i >= 1; i-=5)
+            try
             {
-                Task<List<ExchangeRateModel>> task1 = GetRateFromWebPageAsync(i);
-                Task<List<ExchangeRateModel>> task2 = GetRateFromWebPageAsync(i-1);
-                Task<List<ExchangeRateModel>> task3 = GetRateFromWebPageAsync(i-2);
-                Task<List<ExchangeRateModel>> task4 = GetRateFromWebPageAsync(i - 3);
-                Task<List<ExchangeRateModel>> task5 = GetRateFromWebPageAsync(i - 4);
+                //每次开启5个Task同时获取数据
+                for (int i = startPageNum; i >= 1; i -= 5)
+                {
+                    Task<List<ExchangeRateModel>> task1 = GetRateFromWebPageAsync(i);
+                    Task<List<ExchangeRateModel>> task2 = GetRateFromWebPageAsync(i - 1);
+                    Task<List<ExchangeRateModel>> task3 = GetRateFromWebPageAsync(i - 2);
+                    Task<List<ExchangeRateModel>> task4 = GetRateFromWebPageAsync(i - 3);
+                    Task<List<ExchangeRateModel>> task5 = GetRateFromWebPageAsync(i - 4);
 
-                listAll.AddRange(await task1);
-                listAll.AddRange(await task2);
-                listAll.AddRange(await task3);
-                listAll.AddRange(await task4);
-                listAll.AddRange(await task5);
-                Debug.WriteLine("下载完成Page" + i);
-                Debug.WriteLine("数据总条数" + listAll.Count());
+                    listAll.AddRange(await task1);
+                    listAll.AddRange(await task2);
+                    listAll.AddRange(await task3);
+                    listAll.AddRange(await task4);
+                    listAll.AddRange(await task5);
+
+                    Debug.WriteLine("下载完成Page" + i);
+                    Debug.WriteLine("数据总条数" + listAll.Count());
+                }
+                Debug.WriteLine("下载完成，数据总条数" + listAll.Count());
+                return listAll;
             }
-            Debug.WriteLine("下载完成，数据总条数" + listAll.Count());
-            return listAll;
+            catch(Exception e)
+            {
+                throw e;
+            }
         }
 
         /// <summary>
@@ -54,7 +62,16 @@ namespace UWP_DashBoard.Boc
 
             string url = "https://srh.bankofchina.com/search/whpj/search_cn.jsp" +
                 "?erectDate&nothing&pjname=%E6%BE%B3%E5%A4%A7%E5%88%A9%E4%BA%9A%E5%85%83&page=" + pageNum;
-            String html = await DataScraper.HtmlDownloadAsync(url);
+            string html;
+            try
+            {
+                html = await DataScraper.HtmlDownloadAsync(url);
+            }
+            catch (Exception e)
+            {
+                throw e;
+            }
+
             string pattern1 = "澳大利亚元</td>(.|\n)*?</tr>";
             MatchCollection matchs = Regex.Matches(html, pattern1);
 

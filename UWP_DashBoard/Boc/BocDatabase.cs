@@ -36,6 +36,9 @@ namespace UWP_DashBoard.Boc
                 return;
             }
 
+            //手动去重
+            list = removeDataAlreadyExist(list);
+
             using (var db = new LiteDatabase(erDbPath))
             {
                 var table = db.GetCollection<ExchangeRateModel>(erAuTable);
@@ -45,9 +48,43 @@ namespace UWP_DashBoard.Boc
                     if (result == null && er.dateTime != null)
                     {
                         table.Insert(er);
+                        Debug.WriteLine("插入一条汇率记录,汇率datetime=" + er.dateTime);
+                    }
+                    else
+                    {
+                        Debug.WriteLine("自动去重：汇率数据已存在,汇率datetime=" + er.dateTime);
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// 由于table.FindOne莫名其妙速度太慢，所以从数据库中把最新数据取出，手动去除List中的旧数据
+        /// </summary>
+        /// <param name="rawList"></param>
+        /// <returns></returns>
+        private List<ExchangeRateModel> removeDataAlreadyExist(List<ExchangeRateModel> rawList)
+        {
+            ExchangeRateModel latestData = getLatestExchangeRateInDb();
+            List<ExchangeRateModel> list= rawList.Where(x => DateTime.Compare(latestData.dateTime,x.dateTime)<0).ToList();
+            Debug.WriteLine("手动去重之后的数据条数="+list.Count());
+            return list;
+        }
+
+        /// <summary>
+        /// 获得数据库中现存的最新数据
+        /// </summary>
+        /// <returns></returns>
+        public ExchangeRateModel getLatestExchangeRateInDb()
+        {
+            ExchangeRateModel latestData = new ExchangeRateModel();
+            using (var db = new LiteDatabase(erDbPath))
+            {
+                var table = db.GetCollection<ExchangeRateModel>(erAuTable);
+                latestData = table.FindOne(Query.All(Query.Descending));
+                Debug.WriteLine("数据库中存在的最新数据为" + latestData.dateTime);
+            }
+            return latestData;
         }
 
         /// <summary>
@@ -70,6 +107,8 @@ namespace UWP_DashBoard.Boc
                 }
             }
         }
+
+
 
         /// <summary>
         /// 根据日期查询某日的汇率，返回ExchangeRateModel列表
@@ -100,7 +139,9 @@ namespace UWP_DashBoard.Boc
             {
                 var table = db.GetCollection<DailyHistoryModel>(dhAuTable);
                 var results = table.Find(Query.All(Query.Descending), limit: num);
-                return results.ToList();
+                List<DailyHistoryModel> list = results.ToList();
+                list.Reverse();
+                return list;
             }
         }
 

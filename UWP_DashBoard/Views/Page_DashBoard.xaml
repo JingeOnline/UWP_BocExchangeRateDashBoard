@@ -36,10 +36,12 @@
         </TextBlock>
         <!--当前时间-->
         <TextBlock Text="{x:Bind sys:String.Format('{0:T}',CurrentDateTime),Mode=OneWay}" 
-                   FontSize="320" x:Name="TB_time" 
-                   Grid.ColumnSpan="2" Grid.Row="1" HorizontalAlignment="Center"/>
+                   FontSize="280" x:Name="TB_time" 
+                   Grid.ColumnSpan="2" Grid.Row="1" HorizontalAlignment="Center"
+                   Margin="0,-64,0,-32"/>
         <!--当前天气-->
-        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Top">
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Top"
+                    Grid.ColumnSpan="2">
             <FontIcon FontFamily="Segoe UI Emoji" Glyph="{x:Bind CurrentWeather.Icon,Mode=OneWay}" 
                       FontSize="72" Margin="0,-16,0,0"/>
             <TextBlock  FontSize="52">
@@ -88,12 +90,20 @@
                 <lvc:ColumnSeries Values="{x:Bind AUDExchangeRateValues}"/>
             </lvc:CartesianChart.Series>
         </lvc:CartesianChart>-->
-        <Grid Grid.Row="3" Margin="8,8,4,8">
-            <lvc:CartesianChart Series="{x:Bind AUDExchangeRateSeries,Mode=OneWay}" >
+        <Grid Grid.Row="3" Margin="8,16,4,8" BorderBrush="Gray" BorderThickness="4">
+            <lvc:CartesianChart Series="{x:Bind AUDExchangeRateSeries,Mode=OneWay}" 
+                                x:Name="ExchangeRateChart">
             </lvc:CartesianChart>
+            <TextBlock HorizontalAlignment="Center" VerticalAlignment="Top" Margin="8,-16,0,-8" 
+                       FontSize="72" Text="{x:Bind LatestRate.xhmcj,Mode=OneWay}" Foreground="Black" FontWeight="Normal"/>
+            <TextBlock HorizontalAlignment="Center" VerticalAlignment="Top"  Margin="0,-16,0,0"
+                       FontSize="72" Text="{x:Bind LatestRate.xhmcj,Mode=OneWay}" Foreground="Cyan" FontWeight="Normal"/>
+            <TextBlock HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,12"
+                       FontSize="16" Text="{x:Bind sys:String.Format('Update at: {0:G}',LatestRate.dateTime),Mode=OneWay}" Foreground="Cyan"/>
         </Grid>
-        <Grid Grid.Row="3" Grid.Column="1" Margin="4,8,8,8">
-            <lvc:CartesianChart Series="{x:Bind AUDDailyHistorySeries,Mode=OneWay}" Grid.Row="3" Grid.Column="1">
+        <Grid Grid.Row="3" Grid.Column="1" Margin="4,16,8,8" BorderBrush="Gray" BorderThickness="4">
+            <lvc:CartesianChart Series="{x:Bind AUDDailyHistorySeries,Mode=OneWay}" 
+                                x:Name="DailyHistoryChart">
             </lvc:CartesianChart>
         </Grid>
     </Grid>

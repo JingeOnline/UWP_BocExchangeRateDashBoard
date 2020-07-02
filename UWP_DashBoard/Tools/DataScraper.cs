@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -20,7 +21,7 @@ namespace UWP_DashBoard.Tools
             var uri = new System.Uri(url);
             using (var httpClient = new Windows.Web.Http.HttpClient())
             {
-                // Always catch network exceptions for async methods
+                //Always catch network exceptions for async methods
                 try
                 {
                     string result = await httpClient.GetStringAsync(uri);
@@ -28,7 +29,8 @@ namespace UWP_DashBoard.Tools
                 }
                 catch (Exception ex)
                 {
-                    throw new Exception("HTML页面下载出现错误,URL="+url +"错误消息"+ex.Message);
+                    Debug.WriteLine("HTML页面下载出现错误,URL=" + url + "。错误消息：" + ex.Message);
+                    throw ex;
                 }
             }
         }

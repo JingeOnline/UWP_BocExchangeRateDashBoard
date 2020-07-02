@@ -9,15 +9,27 @@ namespace UWP_DashBoard.Boc
 {
     public class BocService
     {
-        public static bool IsFirstRun = true;
+        private static bool IsFirstRun = true;
+        private ExchangeRateModel latestExchangeRate;
 
         /// <summary>
         /// 获取数据库中的ExchangeRage
         /// </summary>
         /// <returns></returns>
-        public List<ExchangeRateModel> getExchangeRate()
+        public List<ExchangeRateModel> GetExchangeRate()
         {
-            return new BocDatabase().queryErAuTable(getChinaTimeNow());
+            //调试的时候如果当天没有数据，就用昨天的数据代替。
+            //List<ExchangeRateModel> list = new BocDatabase().queryErAuTable(getChinaTimeNow().AddDays(-1));
+            List<ExchangeRateModel> list = new BocDatabase().queryErAuTable(getChinaTimeNow());
+            if (list.Count==0)
+            {
+           latestExchangeRate = new BocDatabase().getLatestExchangeRateInDb();
+            }
+            else
+            {
+            latestExchangeRate = list[list.Count - 1];
+            }
+            return list;
         }
 
         /// <summary>
@@ -29,26 +41,41 @@ namespace UWP_DashBoard.Boc
             return new BocDatabase().queryDhAuTable(365);
         }
 
+
+        public ExchangeRateModel GetLatestExchangeRate()
+        {
+            return latestExchangeRate; 
+        }
         /// <summary>
         /// 执行所有的更新数据库工作
         /// </summary>
         /// <returns></returns>
         public async Task updateDb()
         {
-            if (IsFirstRun)
+            try
             {
-                List<ExchangeRateModel> rateList = await new BocDataRetrieval().GetRateFromWebPageAsync();
-                new BocDatabase().InsertErTable(rateList);
-                createDailyHistoryObjectAndInsertDatabase();
-                IsFirstRun = false;
+                if (IsFirstRun)
+                {
+
+                    List<ExchangeRateModel> rateList = await new BocDataRetrieval().GetRateFromWebPageAsync();
+                    new BocDatabase().InsertErTable(rateList);
+                    createDailyHistoryObjectAndInsertDatabase();
+                    IsFirstRun = false;
+                }
+                else
+                {
+                    List<ExchangeRateModel> rateList = await new BocDataRetrieval().GetRateFromWebPageAsync(1);
+                    new BocDatabase().InsertErTable(rateList);
+                    createDailyHistoryObjectAndInsertDatabase();
+                }
+                Debug.WriteLine("更新数据库完成");
             }
-            else
+            catch(Exception e)
             {
-                List<ExchangeRateModel> rateList = await new BocDataRetrieval().GetRateFromWebPageAsync(1);
-                new BocDatabase().InsertErTable(rateList);
-                createDailyHistoryObjectAndInsertDatabase();
+                Debug.WriteLine("更新数据库因为异常而失败,可能是由于下载网页出现问题，或者数据库操作出现问题。" + e.Message);
+                return;
             }
-            Debug.WriteLine("更新数据库完成");
+
         }
 
         /// <summary>
@@ -61,6 +88,7 @@ namespace UWP_DashBoard.Boc
             //如果昨天数据已经存在，就不要再创建了
             if (database.isDataExistInDhAuTable(yesterdayChinaTime))
             {
+                Debug.WriteLine("昨日历史已经存在，不需要创建‘昨日历史’。");
                 return;
             }
             

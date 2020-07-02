@@ -22,6 +22,9 @@ using Windows.UI.Xaml.Navigation;
 using UWP_DashBoard.Boc;
 using LiveCharts;
 using LiveCharts.Uwp;
+using System.Drawing;
+using Windows.UI;
+using LiveCharts.Configurations;
 
 // https://go.microsoft.com/fwlink/?LinkId=234238 上介绍了“空白页”项模板
 
@@ -42,7 +45,7 @@ namespace UWP_DashBoard.Views
             }
         }
 
-        public string[] lala = new string[] { "a", "b" ,"c"};
+        //public Windows.UI.Color color=Window.
 
         /// <summary>
         /// 当前时间，用于显示在UI上
@@ -86,9 +89,18 @@ namespace UWP_DashBoard.Views
         public SeriesCollection AUDDailyHistorySeries
         {
             get { return _AUDDailyHistorySeries; }
-            set { _AUDDailyHistorySeries = value;OnPropertyChanged(); }
+            set { _AUDDailyHistorySeries = value; OnPropertyChanged(); }
         }
 
+        private ExchangeRateModel _latestRate;
+        public ExchangeRateModel LatestRate
+        {
+            get { return _latestRate; }
+            set { _latestRate = value;OnPropertyChanged(); }
+        }
+
+        private Windows.UI.Color fillColor = new Windows.UI.Color() {A=40,R=0,G=154,B=151 };
+        private Windows.UI.Color lineColor = Colors.Orange;
 
         public Page_DashBoard()
         {
@@ -96,6 +108,7 @@ namespace UWP_DashBoard.Views
             showTime();
             updateWeather();
             updateBocExchangeRate();
+            setChartUi();
         }
 
         /// <summary>
@@ -105,7 +118,7 @@ namespace UWP_DashBoard.Views
         {
             DispatcherTimer timer = new DispatcherTimer();
             timer.Interval = new TimeSpan(0, 0, 1);
-            timer.Tick += (object sender,object e) =>
+            timer.Tick += (object sender, object e) =>
             {
                 CurrentDateTime = DateTime.Now;
             };
@@ -121,25 +134,33 @@ namespace UWP_DashBoard.Views
         {
             DispatcherTimer timer = new DispatcherTimer();
             timer.Interval = new TimeSpan(0, 3, 0);
-            timer.Tick += async (object sender, object e)=>
+            timer.Tick += async (object sender, object e) =>
+            {
+                try
+                {
+                    CurrentWeather = await new WeatherProxy().GetCurrentWeatherUi();
+                    WeatherForecast = await new WeatherProxy().GetForecastWeatherUiList();
+                    Debug.WriteLine("Weather获取数据完成");
+                }catch(Exception ex)
+                {
+                    Debug.WriteLine("Weather获取数据失败"+ex.Message);
+                }
+
+            };
+            timer.Start();
+            //启动timer之后，需要过一个周期才执行，所以这里手动执行该方法一次。
+            try
             {
                 CurrentWeather = await new WeatherProxy().GetCurrentWeatherUi();
                 WeatherForecast = await new WeatherProxy().GetForecastWeatherUiList();
                 Debug.WriteLine("Weather获取数据完成");
-            };
-            timer.Start();
-            //启动timer之后，需要过一个周期才执行，所以这里手动执行该方法一次。
-            CurrentWeather = await new WeatherProxy().GetCurrentWeatherUi();
-            WeatherForecast = await new WeatherProxy().GetForecastWeatherUiList();
-            Debug.WriteLine("Weather获取数据完成");
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine("Weather获取数据失败" + ex.Message);
+            }
         }
 
-
-        //public async Task show(string s)
-        //{
-        //    var md = new MessageDialog(s);
-        //    await md.ShowAsync();
-        //}
 
         /// <summary>
         /// 更新数据库并获取最新的汇率
@@ -157,8 +178,8 @@ namespace UWP_DashBoard.Views
             };
             timer.Start();
             //启动timer之后，需要过一个周期才执行，所以这里手动执行该方法一次。
-            //BocService boc = new BocService();
             await new BocService().updateDb();
+            //new BocService().updateDb();
             setExchangeRateSeries();
             setDailyHistorySeries();
         }
@@ -167,45 +188,107 @@ namespace UWP_DashBoard.Views
         {
             BocService boc = new BocService();
 
-            List<ExchangeRateModel> exchangeRateList = boc.getExchangeRate();
+            List<ExchangeRateModel> exchangeRateList = boc.GetExchangeRate();
+            Debug.WriteLine($"从数据库中成功取出{exchangeRateList.Count()}条当日汇率，准备显示到UI上");
+            LatestRate = boc.GetLatestExchangeRate();
+            Debug.WriteLine($"从数据库中成功取出最新汇率{LatestRate.xhmcj}/{LatestRate.dateTime},准备显示到UI上");
+            //LatestRate.xhmcj = LatestRate.xhmcj / 100;
             ChartValues<double> exchangeRateValues = new ChartValues<double>();
-            foreach(ExchangeRateModel er in exchangeRateList)
+            foreach (ExchangeRateModel er in exchangeRateList)
             {
                 exchangeRateValues.Add(er.xhmcj);
             }
-
-
             AUDExchangeRateSeries = new SeriesCollection
             {
                 new LineSeries
                 {
                     Values=exchangeRateValues,
+                    StrokeThickness=4,
+                    Stroke=new SolidColorBrush(lineColor),
+                    Fill=new SolidColorBrush(fillColor),
+                    PointGeometry=null,
+                    Title="现汇卖出价",
                 },
             };
-
-
         }
+
 
         private void setDailyHistorySeries()
         {
             BocService boc = new BocService();
             List<DailyHistoryModel> dailyHistory = boc.GetDailyHistory();
-
-            ChartValues<double> audValues = new ChartValues<double>();
+            ChartValues<double> dailyHistoryValues = new ChartValues<double>();
             foreach (DailyHistoryModel dh in dailyHistory)
             {
-                audValues.Add(dh.avgXhmcj);
+                dailyHistoryValues.Add(dh.avgXhmcj);
             }
             AUDDailyHistorySeries = new SeriesCollection
             {
                 new LineSeries
                 {
-                    Values=audValues,
+                    Values=dailyHistoryValues,
+                    StrokeThickness=4,
+                    Stroke=new SolidColorBrush(lineColor),
+                    Fill=new SolidColorBrush(fillColor),
+                    PointGeometry=null,
+                    Title="现汇卖出价",
                 },
             };
         }
 
 
+        //设置图表的UI（因为LiveChart UWP有bug，xmal代码老报错）
+        private void setChartUi()
+        {
+            ExchangeRateChart.AxisX = new AxesCollection()
+            {
+                new Axis()
+                {
+                    IsEnabled=false,
+                    ShowLabels=false,
+                },
+            };
+
+            DailyHistoryChart.AxisX = new AxesCollection()
+            {
+                new Axis()
+                {
+                    IsEnabled=true,
+                    ShowLabels=false,
+                },
+            };
+
+            ExchangeRateChart.AxisY = new AxesCollection()
+            {
+                new Axis()
+                {
+                    FontSize=16,
+                    Separator=new Separator{ Step=10},
+                    //MinValue=550,
+                    //MaxValue=450,
+                },
+            };
+
+            DailyHistoryChart.AxisY = new AxesCollection()
+            {
+                new Axis()
+                {
+                    FontSize=16,
+                    Separator=new Separator{ Step=10},
+                },
+            };
+            ExchangeRateChart.DataTooltip = new DefaultTooltip()
+            {
+                FontSize=18,
+                SelectionMode=TooltipSelectionMode.SharedXValues,
+                
+            };
+            DailyHistoryChart.DataTooltip = new DefaultTooltip()
+            {
+                FontSize = 18,
+                SelectionMode = TooltipSelectionMode.SharedXValues,
+            };
+        }
 
 
     }
