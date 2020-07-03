@@ -44,10 +44,13 @@
                     Grid.ColumnSpan="2">
             <FontIcon FontFamily="Segoe UI Emoji" Glyph="{x:Bind CurrentWeather.Icon,Mode=OneWay}" 
                       FontSize="72" Margin="0,-16,0,0"/>
-            <TextBlock  FontSize="52">
+            <StackPanel Orientation="Vertical">
+                <TextBlock  FontSize="52">
                 <Run Text="{x:Bind CurrentWeather.Temperature,Mode=OneWay}"/>
-                <Run Text="{x:Bind CurrentWeather.Description,Mode=OneWay}"/>
-            </TextBlock>
+                <Run Text="{x:Bind CurrentWeather.Main,Mode=OneWay}"/>
+                </TextBlock>
+                <TextBlock FontSize="24" Text="{x:Bind CurrentWeather.Description,Mode=OneWay}" Margin="0,-8,0,0"/>
+            </StackPanel>
         </StackPanel>
         <!--天气预报列表-->
         <ListView     ScrollViewer.HorizontalScrollBarVisibility="Hidden"
