@@ -35,10 +35,11 @@
             <Run Text="{x:Bind sys:String.Format('{0:m}',CurrentDateTime),Mode=OneWay}"/>
         </TextBlock>
         <!--当前时间-->
-        <TextBlock Text="{x:Bind sys:String.Format('{0:T}',CurrentDateTime),Mode=OneWay}" 
-                   FontSize="280" x:Name="TB_time" 
-                   Grid.ColumnSpan="2" Grid.Row="1" HorizontalAlignment="Center"
-                   Margin="0,-64,0,-32"/>
+        <TextBlock  Grid.ColumnSpan="2" Grid.Row="1" HorizontalAlignment="Center"
+                   Margin="0,-68,0,-44">
+            <Run Text="{x:Bind sys:String.Format('{0:t}',CurrentDateTime),Mode=OneWay}" FontSize="300"/>
+            <Run Text="{x:Bind sys:String.Format(':{0:ss}',CurrentDateTime),Mode=OneWay}" FontSize="160"/>
+        </TextBlock>
         <!--当前天气-->
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Top"
                     Grid.ColumnSpan="2">
